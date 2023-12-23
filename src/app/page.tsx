@@ -1,113 +1,429 @@
-import Image from 'next/image'
+'use client';
+import React, { useEffect, useRef, useState } from 'react';
 
-export default function Home() {
+const generateRandomCMYKValues = (): {
+  c: number;
+  m: number;
+  y: number;
+  k: number;
+}[] => {
+  const cmykValues: { c: number; m: number; y: number; k: number }[] =
+    [];
+
+  for (let i = 0; i < 100; i++) {
+    const c = Math.floor(Math.random() * 100);
+    const m = Math.floor(Math.random() * 100);
+    const y = Math.floor(Math.random() * 100);
+    const k = Math.floor(Math.random() * 100);
+
+    const cmykValue = { c, m, y, k };
+    cmykValues.push(cmykValue);
+  }
+
+  return cmykValues;
+};
+
+const convertCMYKToHex = (
+  c: number,
+  m: number,
+  y: number,
+  k: number
+): string => {
+  const r = Math.round(255 * (1 - c / 100) * (1 - k / 100));
+  const g = Math.round(255 * (1 - m / 100) * (1 - k / 100));
+  const b = Math.round(255 * (1 - y / 100) * (1 - k / 100));
+
+  const hex = `#${r.toString(16).padStart(2, '0')}${g
+    .toString(16)
+    .padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+  return hex;
+};
+
+type Color = {
+  c: number;
+  m: number;
+  y: number;
+  k: number;
+};
+
+const Customer: React.FC<{
+  customer: Color;
+  paint: { c: number; m: number; y: number; k: number }[];
+}> = ({ customer }) => (
+  <div
+    style={{
+      backgroundColor: convertCMYKToHex(
+        customer.c,
+        customer.m,
+        customer.y,
+        customer.k
+      ),
+      color: 'white',
+    }}
+  >
+    {`cmyk(${customer.c}, ${customer.m}, ${customer.y}, ${customer.k})`}
+  </div>
+);
+
+const generateBlackCMYKValues = (): {
+  c: number;
+  m: number;
+  y: number;
+  k: number;
+}[] => {
+  const blackCMYKValues: {
+    c: number;
+    m: number;
+    y: number;
+    k: number;
+  }[] = [];
+
+  for (let i = 0; i < 50; i++) {
+    const c = 0;
+    const m = 0;
+    const y = 0;
+    const k = 100;
+
+    const blackCMYKValue = { c, m, y, k };
+    blackCMYKValues.push(blackCMYKValue);
+  }
+
+  return blackCMYKValues;
+};
+
+const TwoColumnComponent = () => {
+  const [money, setMoney] = useState(0);
+  const [purchaseHistory, setPurchaseHistory] = useState<
+    {
+      type: 'internal' | 'external';
+      customer: Color;
+      paint: Color;
+      money: number;
+      balance: number;
+    }[]
+  >([]);
+  const [customers, setCustomers] = useState<
+    { c: number; m: number; y: number; k: number }[]
+  >(generateRandomCMYKValues());
+
+  const [generators, setGenerators] = useState<Color[]>([
+    {
+      c: 0,
+      m: 0,
+      y: 0,
+      k: 100,
+    },
+  ]);
+
+  const [paints, setPaints] = useState<
+    { c: number; m: number; y: number; k: number }[]
+  >([]);
+
+  const timeRef = useRef(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      timeRef.current = timeRef.current + 5;
+      // if (timeRef.current > 15) {
+      //   return;
+      // }
+      let myPaints = paints;
+      let myPurchaseHistory = purchaseHistory;
+      let myMoney = money;
+
+      if (timeRef.current % 10 === 0) {
+        for (const generator of generators) {
+          if (
+            Object.values(generator).filter((value) => value !== 0)
+              .length > 1
+          ) {
+            let myGenerator = generator;
+            let lastLeft = undefined;
+            let tempMyPurchaseHistory = myPurchaseHistory;
+            let tempMyPaints = myPaints;
+            let tempMyMoney = myMoney;
+            while (true) {
+              debugger;
+              const closestPaint = getBestPaint(
+                tempMyPaints,
+                myGenerator
+              );
+              if (lastLeft === closestPaint.bestLeft) {
+                // we never found a full match, fail
+                // dont add it to the list
+                break;
+              }
+              const purchaseMoney = 0.5;
+              tempMyMoney = tempMyMoney - purchaseMoney;
+              tempMyPurchaseHistory = [
+                ...tempMyPurchaseHistory,
+                {
+                  type: 'internal',
+                  customer: generator,
+                  paint: tempMyPaints[closestPaint.index],
+                  money: purchaseMoney,
+                  balance: tempMyMoney,
+                },
+              ];
+
+              tempMyPaints = [
+                ...tempMyPaints.slice(0, closestPaint.index),
+                ...tempMyPaints.slice(closestPaint.index + 1),
+              ];
+
+              myGenerator = closestPaint.remaining as Color;
+              if (closestPaint.bestLeft === 0) {
+                // none left, so stop
+                // add it now
+                myPaints = tempMyPaints;
+                myPurchaseHistory = tempMyPurchaseHistory;
+                myMoney = tempMyMoney;
+                myPaints.unshift(generator);
+                break;
+              }
+              lastLeft = closestPaint.bestLeft;
+            }
+            // do while we are still consuming paints
+            // more than 1 of the values of the generator is non zero
+          } else {
+            const purchaseMoney = 1;
+            myPaints.unshift(generator);
+            myMoney = myMoney - purchaseMoney;
+            myPurchaseHistory = [
+              ...myPurchaseHistory,
+              {
+                type: 'internal',
+                customer: generator,
+                paint: generator,
+                money: purchaseMoney,
+                balance: myMoney,
+              },
+            ];
+          }
+        }
+      }
+
+      for (const customer of customers) {
+        if (myPaints.length === 0) {
+          setCustomers(customers.slice(1));
+          break;
+        }
+        const closestPaint = getBestPaint(myPaints, customer);
+
+        const purchaseMoney = 10 * closestPaint.percent;
+        myMoney = myMoney + purchaseMoney;
+        myPurchaseHistory = [
+          ...myPurchaseHistory,
+          {
+            type: 'external',
+            customer,
+            paint: myPaints[closestPaint.index],
+            money: purchaseMoney,
+            balance: myMoney,
+          },
+        ];
+
+        myPaints = [
+          ...myPaints.slice(0, closestPaint.index),
+          ...myPaints.slice(closestPaint.index + 1),
+        ];
+
+        setCustomers(customers.slice(1));
+
+        // only do the first customer now
+        break;
+      }
+      debugger;
+      const disposalFee = 1;
+      if (myPaints.length > 10) {
+        myMoney = myMoney - disposalFee;
+        myPaints.slice(0, 10);
+      }
+      setPaints(myPaints);
+      setPurchaseHistory(myPurchaseHistory);
+      setMoney(myMoney);
+      // const generatorCount = generators.length;
+      // console.log(`Number of generators: ${generatorCount}`);
+    }, 5000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [customers, generators, money, paints, purchaseHistory]);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
+    <div className="flex h-full">
+      <div className="w-1/2 h-full overflow-y-scroll flex flex-col gap-5">
+        <div className="text-2xl font-bold">${money.toFixed(2)}</div>
+        <div>
+          <h2 className="text-3xl font-bold">Generators</h2>
+
+          <div>
+            <input
+              type="text"
+              disabled={money < 20}
+              placeholder="c,m,y,k"
+              className="text-black"
             />
-          </a>
+            <button
+              disabled={money < 20}
+              onClick={() => {
+                setMoney(money - 20);
+                const inputValues = document
+                  .querySelector('input')
+                  ?.value.split(',');
+                if (inputValues?.length === 4) {
+                  const [c, m, y, k] = inputValues.map(Number);
+                  const newGenerator = { c, m, y, k };
+                  setGenerators([...generators, newGenerator]);
+                }
+              }}
+            >
+              buy $20 generator
+            </button>
+          </div>
+
+          {generators.map((generator, index) => (
+            <div
+              key={index}
+              style={{
+                backgroundColor: convertCMYKToHex(
+                  generator.c,
+                  generator.m,
+                  generator.y,
+                  generator.k
+                ),
+                color: 'white',
+              }}
+            >
+              cmyk({generator.c}, {generator.m}, {generator.y},{' '}
+              {generator.k})
+            </div>
+          ))}
+          {/* Content for the first column */}
         </div>
+
+        <div>
+          <h2 className="text-3xl font-bold">Paint</h2>
+          {paints.length}
+          {paints.map((paint, index) => (
+            <div
+              key={index}
+              style={{
+                backgroundColor: convertCMYKToHex(
+                  paint.c,
+                  paint.m,
+                  paint.y,
+                  paint.k
+                ),
+                color: 'white',
+              }}
+            >
+              cmyk({paint.c}, {paint.m}, {paint.y}, {paint.k})
+            </div>
+          ))}
+        </div>
+
+        <div>
+          <h2 className="text-3xl font-bold">Purchase History</h2>
+          {[...purchaseHistory]
+            .reverse()
+            .slice(0, 10)
+            .map((purchaseHistory, index) => (
+              <div key={index} className="flex flex-row gap-2">
+                {purchaseHistory.type === 'internal'
+                  ? 'paint'
+                  : 'customer'}
+                <div
+                  style={{
+                    backgroundColor: convertCMYKToHex(
+                      purchaseHistory.customer.c,
+                      purchaseHistory.customer.m,
+                      purchaseHistory.customer.y,
+                      purchaseHistory.customer.k
+                    ),
+                    color: 'white',
+                  }}
+                >
+                  cmyk({purchaseHistory.customer.c},{' '}
+                  {purchaseHistory.customer.m},{' '}
+                  {purchaseHistory.customer.y},{' '}
+                  {purchaseHistory.customer.k})
+                </div>
+                {purchaseHistory.type === 'internal'
+                  ? 'was made from'
+                  : 'bought'}
+                <div
+                  style={{
+                    backgroundColor: convertCMYKToHex(
+                      purchaseHistory.paint.c,
+                      purchaseHistory.paint.m,
+                      purchaseHistory.paint.y,
+                      purchaseHistory.paint.k
+                    ),
+                    color: 'white',
+                  }}
+                >
+                  cmyk({purchaseHistory.paint.c},{' '}
+                  {purchaseHistory.paint.m}, {purchaseHistory.paint.y}
+                  , {purchaseHistory.paint.k})
+                </div>
+                <div>for ${purchaseHistory.money.toFixed(2)}</div>
+                <div>
+                  , ${purchaseHistory.balance.toFixed(2)} balance
+                </div>
+              </div>
+            ))}
+        </div>
+
+        {/* Content for the first column */}
       </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
+      <div className="w-1/2 h-full overflow-y-scroll">
+        <h2 className="text-3xl font-bold">Customer Queue</h2>
+        {customers.map((customer, index) => (
+          <Customer key={index} customer={customer} paint={paints} />
+        ))}
       </div>
+    </div>
+  );
+};
+export default TwoColumnComponent;
+function getBestPaint(
+  paint: { c: number; m: number; y: number; k: number }[],
+  customer: { c: number; m: number; y: number; k: number }
+) {
+  return paint.reduce(
+    (acc, p, index) => {
+      const starting =
+        customer.c + customer.m + customer.y + customer.k;
 
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+      const remainingCMYK = {
+        c: Math.max(customer.c - p.c, 0),
+        m: Math.max(customer.m - p.m, 0),
+        y: Math.max(customer.y - p.y, 0),
+        k: Math.max(customer.k - p.k, 0),
+      };
+      const left =
+        remainingCMYK.c +
+        remainingCMYK.m +
+        remainingCMYK.y +
+        remainingCMYK.k;
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+      if (left < acc.bestLeft) {
+        return {
+          index,
+          bestLeft: left,
+          percent: (starting - left) / starting,
+          remaining: remainingCMYK,
+        };
+      }
+      return acc;
+    },
+    {
+      index: 0,
+      bestLeft: Infinity,
+      percent: 0,
+      remaining: undefined as undefined | Color,
+    }
+  );
 }
