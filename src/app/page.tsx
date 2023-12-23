@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 function convertPercentageToExponential(percentage: number) {
   if (percentage < 70) {
     // For percentages less than 70%, use a quadratic function that grows slower than linearly.
-    return Math.ceil(Math.pow(percentage, 2) / 140); // Adjusted the denominator for a slower growth
+    return Math.pow(percentage, 2) / 140; // Adjusted the denominator for a slower growth
   } else if (percentage > 70 && percentage < 100) {
     // For percentages between 70% and 100%, use a quadratic function that grows faster than linearly.
     // Adjust the coefficient to ensure the output is greater than the input.
@@ -314,12 +314,23 @@ const TwoColumnComponent = () => {
                   setGenerators([...generators, newGenerator]);
                 }
               }}
+              className="bg-blue-500 text-white px-1 py-0 rounded"
             >
               buy $20 generator
             </button>
           </div>
           {generators.map((generator, index) => (
             <div key={index} className="flex flex-row gap-2">
+              <button
+                onClick={() => {
+                  const updatedGenerators = generators.filter(
+                    (_, i) => i !== index
+                  );
+                  setGenerators(updatedGenerators);
+                }}
+              >
+                remove
+              </button>
               {Object.values(generator).filter((v) => v !== 0)
                 .length !== 1
                 ? ' Takes '
