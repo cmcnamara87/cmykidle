@@ -274,6 +274,10 @@ const TwoColumnComponent = () => {
         myCustomers = generateRandomCMYKValues();
       }
       setCustomers(myCustomers);
+      if (myPaints.length > 15) {
+        myMoney = myMoney / 2;
+        myPaints = [];
+      }
       setPaints(myPaints);
       setPurchaseHistory(myPurchaseHistory);
       setMoney(myMoney);
