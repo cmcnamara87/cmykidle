@@ -1,6 +1,20 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
 
+function convertPercentageToExponential(percentage: number) {
+  if (percentage < 50) {
+    // For percentages less than 50%, use a quadratic function that grows slower than linearly.
+    return Math.pow(percentage, 2) / 100;
+  } else if (percentage > 50 && percentage < 100) {
+    // For percentages between 50% and 100%, use a quadratic function that grows faster than linearly.
+    // Adjust the coefficient to ensure the output is greater than the input.
+    return 50 + Math.pow(percentage - 50, 2) / 50;
+  } else {
+    // For 50% and 100%, return the value as is.
+    return percentage;
+  }
+}
+
 const generateRandomCMYKValues = (): {
   c: number;
   m: number;
@@ -95,7 +109,7 @@ const generateBlackCMYKValues = (): {
 };
 
 const TwoColumnComponent = () => {
-  const [money, setMoney] = useState(40);
+  const [money, setMoney] = useState(20);
   const [purchaseHistory, setPurchaseHistory] = useState<
     {
       type: 'internal' | 'external';
@@ -157,7 +171,7 @@ const TwoColumnComponent = () => {
                 // dont add it to the list
                 break;
               }
-              const purchaseMoney = 0.25;
+              const purchaseMoney = 0;
               tempMyMoney = tempMyMoney - purchaseMoney;
               tempMyPurchaseHistory = [
                 ...tempMyPurchaseHistory,
@@ -190,7 +204,7 @@ const TwoColumnComponent = () => {
             // do while we are still consuming paints
             // more than 1 of the values of the generator is non zero
           } else {
-            const purchaseMoney = 1;
+            const purchaseMoney = 0;
             myPaints.unshift(generator);
             myMoney = myMoney - purchaseMoney;
             myPurchaseHistory = [
@@ -221,7 +235,12 @@ const TwoColumnComponent = () => {
           }
           const closestPaint = getBestPaint(myPaints, customer);
 
-          const purchaseMoney = 10 * closestPaint.percent;
+          const purchaseMoney =
+            (10 *
+              convertPercentageToExponential(
+                closestPaint.percent * 100
+              )) /
+            100;
           myMoney = myMoney + purchaseMoney;
           myPurchaseHistory = [
             ...myPurchaseHistory,
@@ -300,18 +319,67 @@ const TwoColumnComponent = () => {
           </div>
 
           {generators.map((generator, index) => (
-            <div
-              key={index}
-              style={{
-                backgroundColor: convertCMYKToHex(
-                  generator.c,
-                  generator.m,
-                  generator.y,
-                  generator.k
-                ),
-                color: 'white',
-              }}
-            >
+            <div key={index} className="flex flex-row gap-2">
+              {Object.values(generator).filter((v) => v !== 0)
+                .length !== 1
+                ? ' Takes '
+                : ''}
+              {Object.entries(generator).map(
+                ([key, value], index) => {
+                  if (
+                    Object.values(generator).filter((v) => v !== 0)
+                      .length === 1
+                  ) {
+                    return null;
+                  }
+                  if (value === 0) {
+                    return null;
+                  }
+                  const temp = {
+                    c: 0,
+                    m: 0,
+                    y: 0,
+                    k: 0,
+                    ...{ [key]: value },
+                  };
+                  return (
+                    <>
+                      1 x
+                      <div
+                        key={`${JSON.stringify(
+                          generator
+                        )}-${key}->${value}`}
+                        className="h-5 w-5 border-2 border-white"
+                        style={{
+                          backgroundColor: convertCMYKToHex(
+                            temp.c,
+                            temp.m,
+                            temp.y,
+                            temp.k
+                          ),
+                          color: 'white',
+                        }}
+                      ></div>{' '}
+                    </>
+                  );
+                }
+              )}
+              {Object.values(generator).filter((v) => v !== 0)
+                .length !== 1
+                ? 'and makes'
+                : ''}
+              <div
+                className="h-5 w-5 border-2 border-white"
+                style={{
+                  backgroundColor: convertCMYKToHex(
+                    generator.c,
+                    generator.m,
+                    generator.y,
+                    generator.k
+                  ),
+                  color: 'white',
+                }}
+              ></div>
               cmyk({generator.c}, {generator.m}, {generator.y},{' '}
               {generator.k})
             </div>
@@ -322,22 +390,23 @@ const TwoColumnComponent = () => {
         <div>
           <h2 className="text-3xl font-bold">Paint Store</h2>
           {paints.length} paints for sale
-          {paints.map((paint, index) => (
-            <div
-              key={index}
-              style={{
-                backgroundColor: convertCMYKToHex(
-                  paint.c,
-                  paint.m,
-                  paint.y,
-                  paint.k
-                ),
-                color: 'white',
-              }}
-            >
-              cmyk({paint.c}, {paint.m}, {paint.y}, {paint.k})
-            </div>
-          ))}
+          <div className="flex flex-row gap-2">
+            {paints.map((paint, index) => (
+              <div
+                key={index}
+                style={{
+                  backgroundColor: convertCMYKToHex(
+                    paint.c,
+                    paint.m,
+                    paint.y,
+                    paint.k
+                  ),
+                  color: 'white',
+                }}
+                className="h-5 w-5 border-2 border-white"
+              ></div>
+            ))}
+          </div>
         </div>
 
         <div>
