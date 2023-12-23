@@ -244,11 +244,11 @@ const TwoColumnComponent = () => {
           break;
         }
         debugger;
-        const disposalFee = 1;
-        if (myPaints.length > 10) {
-          myMoney = myMoney - disposalFee;
-          myPaints.slice(0, 10);
-        }
+        // const disposalFee = 1;
+        // if (myPaints.length > 10) {
+        //   myMoney = myMoney - disposalFee;
+        //   myPaints.slice(0, 10);
+        // }
       }
       setPaints(myPaints);
       setPurchaseHistory(myPurchaseHistory);
