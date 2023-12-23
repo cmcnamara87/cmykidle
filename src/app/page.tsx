@@ -577,25 +577,42 @@ function getBestPaint(
       const starting =
         customer.c + customer.m + customer.y + customer.k;
 
-      const remainingCMYK = {
-        c: Math.max(customer.c - p.c, 0),
-        m: Math.max(customer.m - p.m, 0),
-        y: Math.max(customer.y - p.y, 0),
-        k: Math.max(customer.k - p.k, 0),
-      };
-      const remainingPaint = {
-        c: Math.max(p.c - customer.c, 0),
-        m: Math.max(p.m - customer.m, 0),
-        y: Math.max(p.y - customer.y, 0),
-        k: Math.max(p.k - customer.k, 0),
-      };
-      // if there is more than 1 value of paint remaining
+      // does the paint have colors not in the customers
+      // if so we want use it
       if (
-        Object.values(remainingPaint).filter((v) => v !== 0).length >
-        1
+        Object.entries(p).filter(
+          ([key, value]) =>
+            value !== 0 && customer[key as keyof Color] === 0
+        ).length > 0
       ) {
         return acc;
       }
+      // for the paint, find the smallest amount that matches the customer
+      const value = Object.entries(p).reduce((acc, [key, value]) => {
+        if (value === 0) {
+          return acc;
+        }
+        const customerValue = customer[key as keyof Color];
+        const max = Math.min(value, customerValue);
+        if (max < acc) {
+          return max;
+        }
+        return acc;
+      }, Infinity);
+
+      const remainingCMYK = {
+        c: Math.max(customer.c - Math.min(p.c, value), 0),
+        m: Math.max(customer.m - Math.min(p.m, value), 0),
+        y: Math.max(customer.y - Math.min(p.y, value), 0),
+        k: Math.max(customer.k - Math.min(p.k, value), 0),
+      };
+      // if there is more than 1 value of paint remaining
+      // if (
+      //   Object.values(remainingPaint).filter((v) => v !== 0).length >
+      //   1
+      // ) {
+      //   return acc;
+      // }
       const left =
         remainingCMYK.c +
         remainingCMYK.m +
