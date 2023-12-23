@@ -206,7 +206,13 @@ const TwoColumnComponent = () => {
         }
       }
 
-      if (timeRef.current % 5 === 0) {
+      if (
+        myPaints.length > 10
+          ? timeRef.current % 1 == 0
+          : myPaints.length > 5
+          ? timeRef.current % 2 == 0
+          : timeRef.current % 5 === 0
+      ) {
         for (const customer of customers) {
           if (myPaints.length === 0) {
             setCustomers(customers.slice(1));
