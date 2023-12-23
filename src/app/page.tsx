@@ -156,7 +156,7 @@ const TwoColumnComponent = () => {
                 // dont add it to the list
                 break;
               }
-              const purchaseMoney = 0.5;
+              const purchaseMoney = 0.25;
               tempMyMoney = tempMyMoney - purchaseMoney;
               tempMyPurchaseHistory = [
                 ...tempMyPurchaseHistory,
