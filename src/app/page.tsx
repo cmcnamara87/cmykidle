@@ -2,15 +2,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 function convertPercentageToExponential(percentage: number) {
-  if (percentage < 50) {
-    // For percentages less than 50%, use a quadratic function that grows slower than linearly.
-    return Math.pow(percentage, 2) / 100;
-  } else if (percentage > 50 && percentage < 100) {
-    // For percentages between 50% and 100%, use a quadratic function that grows faster than linearly.
+  if (percentage < 70) {
+    // For percentages less than 70%, use a quadratic function that grows slower than linearly.
+    return Math.ceil(Math.pow(percentage, 2) / 140); // Adjusted the denominator for a slower growth
+  } else if (percentage > 70 && percentage < 100) {
+    // For percentages between 70% and 100%, use a quadratic function that grows faster than linearly.
     // Adjust the coefficient to ensure the output is greater than the input.
-    return 50 + Math.pow(percentage - 50, 2) / 50;
+    return 70 + Math.pow(percentage - 70, 2) / 30; // Adjusted the coefficient for faster growth
   } else {
-    // For 50% and 100%, return the value as is.
+    // For 70% and 100%, return the value as is.
     return percentage;
   }
 }
@@ -277,6 +277,7 @@ const TwoColumnComponent = () => {
       setPaints(myPaints);
       setPurchaseHistory(myPurchaseHistory);
       setMoney(myMoney);
+
       // const generatorCount = generators.length;
       // console.log(`Number of generators: ${generatorCount}`);
     }, 1000);
@@ -317,7 +318,6 @@ const TwoColumnComponent = () => {
               buy $20 generator
             </button>
           </div>
-
           {generators.map((generator, index) => (
             <div key={index} className="flex flex-row gap-2">
               {Object.values(generator).filter((v) => v !== 0)
