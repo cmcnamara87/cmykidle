@@ -355,7 +355,7 @@ const TwoColumnComponent = () => {
                     m: 0,
                     y: 0,
                     k: 0,
-                    ...{ [key]: value },
+                    ...{ [key]: 100 },
                   };
                   return (
                     <>
@@ -528,6 +528,19 @@ function getBestPaint(
         y: Math.max(customer.y - p.y, 0),
         k: Math.max(customer.k - p.k, 0),
       };
+      const remainingPaint = {
+        c: Math.max(p.c - customer.c, 0),
+        m: Math.max(p.m - customer.m, 0),
+        y: Math.max(p.y - customer.y, 0),
+        k: Math.max(p.k - customer.k, 0),
+      };
+      // if there is more than 1 value of paint remaining
+      if (
+        Object.values(remainingPaint).filter((v) => v !== 0).length >
+        1
+      ) {
+        return acc;
+      }
       const left =
         remainingCMYK.c +
         remainingCMYK.m +
