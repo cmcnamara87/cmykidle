@@ -380,11 +380,34 @@ const TwoColumnComponent = () => {
 
         {/* Content for the first column */}
       </div>
-      <div className="w-1/2 h-full overflow-y-scroll">
-        <h2 className="text-3xl font-bold">Customer Queue</h2>
-        {customers.map((customer, index) => (
-          <Customer key={index} customer={customer} paint={paints} />
-        ))}
+      <div className="w-1/2 h-full overflow-y-scroll flex flex-col gap-5">
+        <div>
+          <h2 className="text-3xl font-bold">Customer Queue</h2>
+          <ul>
+            <li>
+              Customers wait 5 seconds for paint if there is none,
+              they leave.
+            </li>
+            <li>Customers will only buy 1 can of paint</li>
+            <li>
+              Customers customers buy the closest color they can get
+            </li>
+            <li>
+              Customers customers pay more the closer the color is
+            </li>
+            <li>Create more colors using generators</li>
+          </ul>
+        </div>
+
+        <div>
+          {customers.map((customer, index) => (
+            <Customer
+              key={index}
+              customer={customer}
+              paint={paints}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
