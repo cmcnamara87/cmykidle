@@ -133,6 +133,7 @@ const TwoColumnComponent = () => {
       let myPaints = paints;
       let myPurchaseHistory = purchaseHistory;
       let myMoney = money;
+      let myCustomers = customers;
 
       if (timeRef.current == 1 || timeRef.current % 12 === 0) {
         for (const generator of generators) {
@@ -213,9 +214,9 @@ const TwoColumnComponent = () => {
           ? timeRef.current % 2 == 0
           : timeRef.current % 5 === 0
       ) {
-        for (const customer of customers) {
+        for (const customer of myCustomers) {
           if (myPaints.length === 0) {
-            setCustomers(customers.slice(1));
+            myCustomers = myCustomers.slice(1);
             break;
           }
           const closestPaint = getBestPaint(myPaints, customer);
@@ -238,7 +239,7 @@ const TwoColumnComponent = () => {
             ...myPaints.slice(closestPaint.index + 1),
           ];
 
-          setCustomers(customers.slice(1));
+          myCustomers = myCustomers.slice(1);
 
           // only do the first customer now
           break;
@@ -250,6 +251,10 @@ const TwoColumnComponent = () => {
         //   myPaints.slice(0, 10);
         // }
       }
+      if (myCustomers.length === 0) {
+        myCustomers = generateRandomCMYKValues();
+      }
+      setCustomers(myCustomers);
       setPaints(myPaints);
       setPurchaseHistory(myPurchaseHistory);
       setMoney(myMoney);
