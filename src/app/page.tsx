@@ -156,7 +156,7 @@ const TwoColumnComponent = () => {
                 // dont add it to the list
                 break;
               }
-              const purchaseMoney = 1;
+              const purchaseMoney = 0.5;
               tempMyMoney = tempMyMoney - purchaseMoney;
               tempMyPurchaseHistory = [
                 ...tempMyPurchaseHistory,
@@ -189,7 +189,7 @@ const TwoColumnComponent = () => {
             // do while we are still consuming paints
             // more than 1 of the values of the generator is non zero
           } else {
-            const purchaseMoney = 2;
+            const purchaseMoney = 1;
             myPaints.unshift(generator);
             myMoney = myMoney - purchaseMoney;
             myPurchaseHistory = [
