@@ -400,12 +400,66 @@ const TwoColumnComponent = () => {
             </div>
           ))}
           {/* Content for the first column */}
+
+          <div>
+            <h2 className="text-3xl font-bold">Generation History</h2>
+            {[...purchaseHistory]
+              .reverse()
+              .filter((p) => p.type === 'internal')
+              .slice(0, 20)
+              .map((purchaseHistory, index) => (
+                <div key={index} className="flex flex-row gap-2">
+                  {purchaseHistory.type === 'internal'
+                    ? 'paint'
+                    : 'customer'}
+                  <div
+                    style={{
+                      backgroundColor: convertCMYKToHex(
+                        purchaseHistory.customer.c,
+                        purchaseHistory.customer.m,
+                        purchaseHistory.customer.y,
+                        purchaseHistory.customer.k
+                      ),
+                      color: 'white',
+                    }}
+                  >
+                    cmyk({purchaseHistory.customer.c},{' '}
+                    {purchaseHistory.customer.m},{' '}
+                    {purchaseHistory.customer.y},{' '}
+                    {purchaseHistory.customer.k})
+                  </div>
+                  {purchaseHistory.type === 'internal'
+                    ? 'was made from'
+                    : 'bought'}
+                  <div
+                    style={{
+                      backgroundColor: convertCMYKToHex(
+                        purchaseHistory.paint.c,
+                        purchaseHistory.paint.m,
+                        purchaseHistory.paint.y,
+                        purchaseHistory.paint.k
+                      ),
+                      color: 'white',
+                    }}
+                  >
+                    cmyk({purchaseHistory.paint.c},{' '}
+                    {purchaseHistory.paint.m},{' '}
+                    {purchaseHistory.paint.y},{' '}
+                    {purchaseHistory.paint.k})
+                  </div>
+                  <div>for ${purchaseHistory.money.toFixed(2)}</div>
+                  <div>
+                    , ${purchaseHistory.balance.toFixed(2)} balance
+                  </div>
+                </div>
+              ))}
+          </div>
         </div>
 
         <div>
           <h2 className="text-3xl font-bold">Paint Store</h2>
           {paints.length} paints for sale
-          <div className="flex flex-row gap-2">
+          <div className="flex flex-row gap-2 flex-wrap">
             {paints.map((paint, index) => (
               <div
                 key={index}
@@ -428,7 +482,8 @@ const TwoColumnComponent = () => {
           <h2 className="text-3xl font-bold">Purchase History</h2>
           {[...purchaseHistory]
             .reverse()
-            .slice(0, 10)
+            .filter((p) => p.type === 'external')
+            .slice(0, 30)
             .map((purchaseHistory, index) => (
               <div key={index} className="flex flex-row gap-2">
                 {purchaseHistory.type === 'internal'
