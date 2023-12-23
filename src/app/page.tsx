@@ -50,18 +50,21 @@ const Customer: React.FC<{
   customer: Color;
   paint: { c: number; m: number; y: number; k: number }[];
 }> = ({ customer }) => (
-  <div
-    style={{
-      backgroundColor: convertCMYKToHex(
-        customer.c,
-        customer.m,
-        customer.y,
-        customer.k
-      ),
-      color: 'white',
-    }}
-  >
-    {`cmyk(${customer.c}, ${customer.m}, ${customer.y}, ${customer.k})`}
+  <div className="flex flex-row gap-2">
+    <div>Customer wants</div>
+    <div
+      style={{
+        backgroundColor: convertCMYKToHex(
+          customer.c,
+          customer.m,
+          customer.y,
+          customer.k
+        ),
+        color: 'white',
+      }}
+    >
+      {`cmyk(${customer.c}, ${customer.m}, ${customer.y}, ${customer.k})`}
+    </div>
   </div>
 );
 
@@ -92,7 +95,7 @@ const generateBlackCMYKValues = (): {
 };
 
 const TwoColumnComponent = () => {
-  const [money, setMoney] = useState(20);
+  const [money, setMoney] = useState(40);
   const [purchaseHistory, setPurchaseHistory] = useState<
     {
       type: 'internal' | 'external';
@@ -258,7 +261,7 @@ const TwoColumnComponent = () => {
       <div className="w-1/2 h-full overflow-y-scroll flex flex-col gap-5">
         <div className="text-2xl font-bold">${money.toFixed(2)}</div>
         <div>
-          <h2 className="text-3xl font-bold">Generators</h2>
+          <h2 className="text-3xl font-bold">Paint Factory</h2>
 
           <div>
             <input
@@ -306,8 +309,8 @@ const TwoColumnComponent = () => {
         </div>
 
         <div>
-          <h2 className="text-3xl font-bold">Paint</h2>
-          {paints.length}
+          <h2 className="text-3xl font-bold">Paint Store</h2>
+          {paints.length} paints for sale
           {paints.map((paint, index) => (
             <div
               key={index}
@@ -395,7 +398,9 @@ const TwoColumnComponent = () => {
             <li>
               Customers customers pay more the closer the color is
             </li>
-            <li>Create more colors using generators</li>
+            <li>
+              Make more paints colors by buying paint generators
+            </li>
           </ul>
         </div>
 
