@@ -123,7 +123,7 @@ const TwoColumnComponent = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      timeRef.current = timeRef.current + 5;
+      timeRef.current = timeRef.current + 1;
       // if (timeRef.current > 15) {
       //   return;
       // }
@@ -131,7 +131,7 @@ const TwoColumnComponent = () => {
       let myPurchaseHistory = purchaseHistory;
       let myMoney = money;
 
-      if (timeRef.current % 10 === 0) {
+      if (timeRef.current == 1 || timeRef.current % 12 === 0) {
         for (const generator of generators) {
           if (
             Object.values(generator).filter((value) => value !== 0)
@@ -203,48 +203,50 @@ const TwoColumnComponent = () => {
         }
       }
 
-      for (const customer of customers) {
-        if (myPaints.length === 0) {
+      if (timeRef.current % 5 === 0) {
+        for (const customer of customers) {
+          if (myPaints.length === 0) {
+            setCustomers(customers.slice(1));
+            break;
+          }
+          const closestPaint = getBestPaint(myPaints, customer);
+
+          const purchaseMoney = 10 * closestPaint.percent;
+          myMoney = myMoney + purchaseMoney;
+          myPurchaseHistory = [
+            ...myPurchaseHistory,
+            {
+              type: 'external',
+              customer,
+              paint: myPaints[closestPaint.index],
+              money: purchaseMoney,
+              balance: myMoney,
+            },
+          ];
+
+          myPaints = [
+            ...myPaints.slice(0, closestPaint.index),
+            ...myPaints.slice(closestPaint.index + 1),
+          ];
+
           setCustomers(customers.slice(1));
+
+          // only do the first customer now
           break;
         }
-        const closestPaint = getBestPaint(myPaints, customer);
-
-        const purchaseMoney = 10 * closestPaint.percent;
-        myMoney = myMoney + purchaseMoney;
-        myPurchaseHistory = [
-          ...myPurchaseHistory,
-          {
-            type: 'external',
-            customer,
-            paint: myPaints[closestPaint.index],
-            money: purchaseMoney,
-            balance: myMoney,
-          },
-        ];
-
-        myPaints = [
-          ...myPaints.slice(0, closestPaint.index),
-          ...myPaints.slice(closestPaint.index + 1),
-        ];
-
-        setCustomers(customers.slice(1));
-
-        // only do the first customer now
-        break;
-      }
-      debugger;
-      const disposalFee = 1;
-      if (myPaints.length > 10) {
-        myMoney = myMoney - disposalFee;
-        myPaints.slice(0, 10);
+        debugger;
+        const disposalFee = 1;
+        if (myPaints.length > 10) {
+          myMoney = myMoney - disposalFee;
+          myPaints.slice(0, 10);
+        }
       }
       setPaints(myPaints);
       setPurchaseHistory(myPurchaseHistory);
       setMoney(myMoney);
       // const generatorCount = generators.length;
       // console.log(`Number of generators: ${generatorCount}`);
-    }, 5000);
+    }, 1000);
 
     return () => {
       clearInterval(interval);
